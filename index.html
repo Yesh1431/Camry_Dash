@@ -150,7 +150,6 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
       </div>
       <ul class="codes" id="codes"><li class="none">Connect, then tap Read codes.</li></ul>
       <p class="note" id="clearNote" hidden>Clearing codes also resets the car's readiness monitors. Tap Clear codes again within 5 seconds to confirm.</p>
-      <p class="note">Codes are the standard P/B/C/U numbers. Look a code up by number to see what it means for your car.</p>
     </section>
 
     <section class="panel">
@@ -167,7 +166,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     <section class="panel">
       <div class="label">Bank 1 catalyst check · P0420 / P2423</div>
       <div class="verdict" id="verdict">Connect to start the test.</div>
-      <p class="note" id="verdictNote">This compares the sensor before the catalytic converter with the sensor after it. It is a guide, and the charts below are the real evidence.</p>
+      <p class="note" id="verdictNote"></p>
       <div class="chips" style="margin-top:12px">
         <span class="chip" id="chipWarm">Warm: --</span>
         <span class="chip" id="chipRpm">RPM: --</span>
@@ -177,7 +176,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
 
     <section class="panel">
       <div class="chart-head">
-        <div><div class="label"><span class="swatch" style="background:var(--accent)"></span>Upstream · before cat</div><div class="note" id="upSub" style="margin:2px 0 0">Waiting for data</div></div>
+        <div><div class="label"><span class="swatch" style="background:var(--accent)"></span>Upstream · before cat</div><div class="note" id="upSub" style="margin:2px 0 0">No reading yet</div></div>
         <div class="now" style="color:var(--accent)"><span id="upNow">--</span><small id="upUnit"></small></div>
       </div>
       <canvas class="chart" id="upChart" aria-label="Upstream sensor, last 60 seconds"></canvas>
@@ -185,7 +184,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
 
     <section class="panel">
       <div class="chart-head">
-        <div><div class="label"><span class="swatch" style="background:var(--cool)"></span>Downstream · after cat</div><div class="note" id="dnSub" style="margin:2px 0 0">Waiting for data</div></div>
+        <div><div class="label"><span class="swatch" style="background:var(--cool)"></span>Downstream · after cat</div><div class="note" id="dnSub" style="margin:2px 0 0">No reading yet</div></div>
         <div class="now" style="color:var(--cool)"><span id="dnNow">--</span><small>V</small></div>
       </div>
       <canvas class="chart" id="dnChart" aria-label="Downstream sensor, last 60 seconds"></canvas>
@@ -212,7 +211,6 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
         <li>Healthy cat: the lower chart stays fairly flat while the upper one swings. Worn cat: the lower chart swings like the upper one.</li>
         <li>Tap Reset low / high, snap the throttle open once and let go. A good downstream sensor reaches above 0.80 V, then drops below 0.20 V.</li>
       </ol>
-      <p class="note">The adapter reads a few samples per second, so very fast switching can look slower than it is. Compare the two charts with each other, not with a textbook trace.</p>
     </section>
   </div>
 </main>
@@ -441,11 +439,11 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     if (cat.up !== null) {
       $('upNow').textContent = cat.upKind === 'lambda' ? cat.up.toFixed(3) : cat.up.toFixed(2);
       $('upUnit').textContent = cat.upKind === 'lambda' ? 'λ' : 'V';
-      $('upSub').textContent = cat.upKind === 'lambda' ? 'Air/fuel sensor, lambda ratio. 1.00 is ideal.' : 'Oxygen sensor voltage. Switches around 0.45 V.';
+      $('upSub').textContent = cat.upKind === 'lambda' ? 'Air/fuel ratio (λ), 1.00 is ideal' : 'O2 voltage, switches near 0.45 V';
     } else if (unsup['24'] && unsup['14']) {
       $('upSub').textContent = 'Not supported by this car';
     }
-    if (cat.dn !== null) { $('dnNow').textContent = cat.dn.toFixed(2); $('dnSub').textContent = 'Oxygen sensor voltage. Steady is good.'; }
+    if (cat.dn !== null) { $('dnNow').textContent = cat.dn.toFixed(2); $('dnSub').textContent = 'O2 voltage, steady is good'; }
     else if (unsup['15']) { $('dnSub').textContent = 'Not supported by this car'; }
     $('stft').textContent = fmt(cat.stft, 1);
     $('ltft').textContent = fmt(cat.ltft, 1);
