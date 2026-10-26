@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Camry Dash</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: one-column instrument panel with two views. Dash shows the basic gauges. Cat test stacks the upstream chart over the downstream chart on a shared 60 s time axis so the two can be compared by eye. */
+:root {
+  --bg: #eef0f2;
+  --panel: #ffffff;
+  --fg: #14181d;
+  --muted: #5d6874;
+  --line: #d3d8de;
+  --accent: #c2410c;
+  --cool: #1d6fb8;
+  --ok: #17803d;
+  --bad: #b42318;
+  --warn: #a15c07;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1317; --panel: #181e24; --fg: #e8ecf0; --muted: #8b97a3;
+    --line: #2a333c; --accent: #ff8a3d; --cool: #5cb3ff; --ok: #4cc27a; --bad: #ff6b5e; --warn: #f0b24a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1317; --panel: #181e24; --fg: #e8ecf0; --muted: #8b97a3;
+  --line: #2a333c; --accent: #ff8a3d; --cool: #5cb3ff; --ok: #4cc27a; --bad: #ff6b5e; --warn: #f0b24a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px;
+  padding-block: 16px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 34px; letter-spacing: .02em; text-transform: uppercase; margin: 0; line-height: 1; }
+.sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.status { font-family: var(--font-data); font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.dot.on { background: var(--ok); }
+.dot.err { background: var(--bad); }
+button {
+  font: inherit; font-weight: 500; color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; min-height: 44px; cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] button.primary { color: #1a0d03; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.primary { color: #1a0d03; } }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.tabs button { border: 0; border-radius: 0; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] .tabs button[aria-selected="true"] { color: #1a0d03; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs button[aria-selected="true"] { color: #1a0d03; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.rpm { display: grid; gap: 10px; }
+.rpm .val { font-family: var(--font-display); font-weight: 700; font-size: 84px; line-height: .95; font-variant-numeric: tabular-nums; }
+.rpm .val small { font-size: 22px; color: var(--muted); font-weight: 500; margin-left: 6px; letter-spacing: .06em; }
+.bar { position: relative; height: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); transition: width .25s linear; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 11px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.tile .val { font-family: var(--font-display); font-weight: 700; font-size: 48px; line-height: 1.05; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.tile .val small { font-size: 18px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+.tile.small .val { font-size: 36px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.codes { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.codes li { font-family: var(--font-data); font-size: 18px; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.codes li.none { font-family: var(--font-body); font-size: 15px; color: var(--muted); }
+.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; line-height: 1.45; }
+pre#log {
+  font-family: var(--font-data); font-size: 12px; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 10px; margin: 10px 0 0; height: 150px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+}
+form.cmd { display: flex; gap: 8px; margin-top: 10px; }
+form.cmd input {
+  flex: 1; min-width: 0; font-family: var(--font-data); font-size: 16px; padding: 10px 12px; min-height: 44px;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; text-transform: uppercase;
+}
+#warn { border-color: var(--bad); color: var(--bad); }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font-family: var(--font-data); font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--panel); }
+.chip.good { border-color: var(--ok); color: var(--ok); }
+.chip.wait { border-color: var(--warn); color: var(--warn); }
+.verdict { font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1.15; margin-top: 6px; text-wrap: balance; }
+.verdict.good { color: var(--ok); }
+.verdict.bad { color: var(--bad); }
+.verdict.warn { color: var(--warn); }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.chart-head .now { font-family: var(--font-display); font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums; }
+.chart-head .now small { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+canvas.chart { display: block; width: 100%; height: 150px; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.45; }
+@media (max-width: 400px) { .rpm .val { font-size: 68px; } .tile .val { font-size: 40px; } .tile.small .val { font-size: 32px; } }
+</style>
+
+<main>
+  <header>
+    <div>
+      <h1>Camry Dash</h1>
+      <div class="sub">2006 Camry · FIXD sensor over Bluetooth LE</div>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span></div>
+  </header>
+
+  <div class="panel" id="warn" hidden></div>
+
+  <div class="row">
+    <button class="primary" id="connectBtn" type="button">Connect to FIXD</button>
+    <button id="disconnectBtn" type="button" disabled>Disconnect</button>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="tabDash" aria-selected="true" aria-controls="dashView">Dash</button>
+    <button type="button" role="tab" id="tabCat" aria-selected="false" aria-controls="catView">Cat test</button>
+  </div>
+
+  <div id="dashView" role="tabpanel" aria-labelledby="tabDash" style="display:grid;gap:14px">
+    <section class="panel rpm" aria-label="Engine speed">
+      <div class="label">Engine speed</div>
+      <div class="val"><span id="rpm">--</span><small>RPM</small></div>
+      <div class="bar"><i id="rpmBar"></i></div>
+      <div class="ticks"><span>0</span><span>2</span><span>4</span><span>6</span><span>8 ×1000</span></div>
+    </section>
+
+    <section class="grid" aria-label="Gauges">
+      <div class="panel tile"><div class="label">Speed</div><div class="val"><span id="speed">--</span><small>mph</small></div></div>
+      <div class="panel tile"><div class="label">Coolant</div><div class="val"><span id="coolant">--</span><small>°F</small></div></div>
+      <div class="panel tile"><div class="label">Throttle</div><div class="val"><span id="throttle">--</span><small>%</small></div></div>
+      <div class="panel tile"><div class="label">Engine load</div><div class="val"><span id="load">--</span><small>%</small></div></div>
+    </section>
+
+    <section class="panel">
+      <div class="label">Trouble codes</div>
+      <div class="row" style="margin-top:10px">
+        <button id="readCodes" type="button" disabled>Read codes</button>
+        <button id="clearCodes" type="button" disabled>Clear codes</button>
+      </div>
+      <ul class="codes" id="codes"><li class="none">Connect, then tap Read codes.</li></ul>
+      <p class="note" id="clearNote" hidden>Clearing codes also resets the car's readiness monitors. Tap Clear codes again within 5 seconds to confirm.</p>
+      <p class="note">Codes are the standard P/B/C/U numbers. Look a code up by number to see what it means for your car.</p>
+    </section>
+
+    <section class="panel">
+      <div class="label">Raw console</div>
+      <pre id="log" aria-live="polite"></pre>
+      <form class="cmd" id="cmdForm">
+        <input id="cmdInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 010C" aria-label="OBD command">
+        <button type="submit" id="cmdSend" disabled>Send</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="catView" role="tabpanel" aria-labelledby="tabCat" hidden style="display:none;gap:14px">
+    <section class="panel">
+      <div class="label">Bank 1 catalyst check · P0420 / P2423</div>
+      <div class="verdict" id="verdict">Connect to start the test.</div>
+      <p class="note" id="verdictNote">This compares the sensor before the catalytic converter with the sensor after it. It is a guide, and the charts below are the real evidence.</p>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip" id="chipWarm">Warm: --</span>
+        <span class="chip" id="chipRpm">RPM: --</span>
+        <span class="chip" id="chipRate">Samples: --</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="chart-head">
+        <div><div class="label"><span class="swatch" style="background:var(--accent)"></span>Upstream · before cat</div><div class="note" id="upSub" style="margin:2px 0 0">Waiting for data</div></div>
+        <div class="now" style="color:var(--accent)"><span id="upNow">--</span><small id="upUnit"></small></div>
+      </div>
+      <canvas class="chart" id="upChart" aria-label="Upstream sensor, last 60 seconds"></canvas>
+    </section>
+
+    <section class="panel">
+      <div class="chart-head">
+        <div><div class="label"><span class="swatch" style="background:var(--cool)"></span>Downstream · after cat</div><div class="note" id="dnSub" style="margin:2px 0 0">Waiting for data</div></div>
+        <div class="now" style="color:var(--cool)"><span id="dnNow">--</span><small>V</small></div>
+      </div>
+      <canvas class="chart" id="dnChart" aria-label="Downstream sensor, last 60 seconds"></canvas>
+    </section>
+
+    <section class="grid" aria-label="Readings">
+      <div class="panel tile small"><div class="label">Short-term trim</div><div class="val"><span id="stft">--</span><small>%</small></div></div>
+      <div class="panel tile small"><div class="label">Long-term trim</div><div class="val"><span id="ltft">--</span><small>%</small></div></div>
+      <div class="panel tile small"><div class="label">Downstream low</div><div class="val"><span id="dnMin">--</span><small>V</small></div></div>
+      <div class="panel tile small"><div class="label">Downstream high</div><div class="val"><span id="dnMax">--</span><small>V</small></div></div>
+    </section>
+
+    <div class="row">
+      <button id="resetRange" type="button">Reset low / high</button>
+      <button id="copyData" type="button">Copy data</button>
+    </div>
+    <p class="note" id="copyNote" style="margin-top:-6px" hidden></p>
+
+    <section class="panel">
+      <div class="label">How to run the test</div>
+      <ol class="steps">
+        <li>Park outdoors with the parking brake on. Let the engine warm up until the Warm chip turns green.</li>
+        <li>Hold the engine near 2,500 RPM for about 30 seconds. Watch both charts.</li>
+        <li>Healthy cat: the lower chart stays fairly flat while the upper one swings. Worn cat: the lower chart swings like the upper one.</li>
+        <li>Tap Reset low / high, snap the throttle open once and let go. A good downstream sensor reaches above 0.80 V, then drops below 0.20 V.</li>
+      </ol>
+      <p class="note">The adapter reads a few samples per second, so very fast switching can look slower than it is. Compare the two charts with each other, not with a textbook trace.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  var SERVICE = 0xFFF0, NOTIFY = 0xFFF1, WRITE = 0xFFF2;
+  var $ = function (id) { return document.getElementById(id); };
+  var device = null, notifyChar = null, writeChar = null;
+  var buf = '', waiter = null, polling = false, busy = Promise.resolve();
+  var enc = new TextEncoder(), dec = new TextDecoder();
+  var mode = 'dash';
+  var WINDOW_MS = 60000;
+  var cat = { samples: [], up: null, dn: null, rpm: null, coolant: null, stft: null, ltft: null, upKind: null, min: null, max: null, n: 0 };
+  var fails = {}, unsup = {};
+
+  function log(line) {
+    var el = $('log');
+    el.textContent += line + '\n';
+    if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-4000);
+    el.scrollTop = el.scrollHeight;
+  }
+  function setStatus(text, kind) {
+    $('statusText').textContent = text;
+    $('dot').className = 'dot' + (kind ? ' ' + kind : '');
+  }
+  function showWarn(msg) { var w = $('warn'); w.textContent = msg; w.hidden = !msg; }
+  function enable(on) {
+    ['disconnectBtn', 'readCodes', 'clearCodes', 'cmdSend'].forEach(function (id) { $(id).disabled = !on; });
+    $('connectBtn').disabled = on;
+  }
+
+  if (!navigator.bluetooth) {
+    showWarn('This browser cannot use Bluetooth. On iPhone, open this page in the free Bluefy browser. On Android, use Chrome.');
+    $('connectBtn').disabled = true;
+  }
+
+  function onNotify(ev) {
+    buf += dec.decode(ev.target.value);
+    if (buf.indexOf('>') !== -1 && waiter) { var w = waiter; waiter = null; w(buf); }
+  }
+
+  function writeRaw(text) {
+    var bytes = enc.encode(text), i = 0;
+    function next() {
+      if (i >= bytes.length) return Promise.resolve();
+      var chunk = bytes.slice(i, i + 20); i += 20;
+      var p = writeChar.writeValueWithoutResponse ? writeChar.writeValueWithoutResponse(chunk) : writeChar.writeValue(chunk);
+      return p.then(next);
+    }
+    return next();
+  }
+
+  // Sends one command and resolves with its cleaned reply lines. Commands run one at a time.
+  function send(cmd, timeout, quiet) {
+    var job = busy.then(function () {
+      buf = '';
+      if (!quiet) log('> ' + cmd);
+      return new Promise(function (resolve, reject) {
+        var t = setTimeout(function () { waiter = null; reject(new Error('timeout')); }, timeout || 4000);
+        waiter = function (raw) { clearTimeout(t); resolve(raw); };
+        writeRaw(cmd + '\r').catch(function (e) { clearTimeout(t); waiter = null; reject(e); });
+      }).then(function (raw) {
+        var lines = raw.replace(/>/g, '').split(/[\r\n]+/).map(function (s) { return s.trim(); })
+          .filter(function (s) { return s && s !== cmd && s.indexOf('SEARCHING') === -1; });
+        if (!quiet) log(lines.join(' | ') || '(empty)');
+        return lines;
+      });
+    });
+    busy = job.catch(function () {});
+    return job;
+  }
+
+  // Find the data bytes for a mode 01 reply, e.g. "41 0C 0A 9E" for PID 0C.
+  function pidBytes(lines, pid) {
+    var head = '41' + pid;
+    for (var i = 0; i < lines.length; i++) {
+      var hex = lines[i].replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      var at = hex.indexOf(head);
+      if (at !== -1) {
+        var out = [];
+        for (var j = at + 4; j + 1 < hex.length + 1; j += 2) out.push(parseInt(hex.substr(j, 2), 16));
+        return out;
+      }
+    }
+    return null;
+  }
+
+  var pids = [
+    { cmd: '010C', pid: '0C', apply: function (b) { var v = Math.round((b[0] * 256 + b[1]) / 4); $('rpm').textContent = v; $('rpmBar').style.width = Math.min(100, v / 80) + '%'; } },
+    { cmd: '010D', pid: '0D', apply: function (b) { $('speed').textContent = Math.round(b[0] * 0.621371); } },
+    { cmd: '0105', pid: '05', apply: function (b) { $('coolant').textContent = Math.round((b[0] - 40) * 9 / 5 + 32); } },
+    { cmd: '0111', pid: '11', apply: function (b) { $('throttle').textContent = Math.round(b[0] * 100 / 255); } },
+    { cmd: '0104', pid: '04', apply: function (b) { $('load').textContent = Math.round(b[0] * 100 / 255); } }
+  ];
+
+  // Cat test PIDs. Upstream is tried as a wideband air/fuel sensor (0124) first, then as a normal O2 sensor (0114).
+  var dnItem = { cmd: '0115', pid: '15', apply: function (b) { cat.dn = b[0] * 0.005; } };
+  var upItems = {
+    '24': { cmd: '0124', pid: '24', apply: function (b) { if (b.length >= 2) { cat.up = (b[0] * 256 + b[1]) * 2 / 65536; cat.upKind = 'lambda'; } } },
+    '14': { cmd: '0114', pid: '14', apply: function (b) { cat.up = b[0] * 0.005; cat.upKind = 'volts'; } }
+  };
+  var slowItems = [
+    { cmd: '010C', pid: '0C', apply: function (b) { cat.rpm = Math.round((b[0] * 256 + b[1]) / 4); } },
+    { cmd: '0105', pid: '05', apply: function (b) { cat.coolant = Math.round((b[0] - 40) * 9 / 5 + 32); } },
+    { cmd: '0106', pid: '06', apply: function (b) { cat.stft = (b[0] - 128) * 100 / 128; } },
+    { cmd: '0107', pid: '07', apply: function (b) { cat.ltft = (b[0] - 128) * 100 / 128; } }
+  ];
+
+  function runCycle(list, quiet) {
+    var chain = Promise.resolve();
+    list.forEach(function (p) {
+      chain = chain.then(function () {
+        if (!polling || unsup[p.pid]) return;
+        return send(p.cmd, 4000, quiet).then(function (lines) {
+          var b = pidBytes(lines, p.pid);
+          if (b && b.length) { fails[p.pid] = 0; p.apply(b); }
+          else {
+            fails[p.pid] = (fails[p.pid] || 0) + 1;
+            if (fails[p.pid] >= 3 && mode === 'cat') { unsup[p.pid] = true; log('PID ' + p.pid + ' not supported by this car'); }
+          }
+        }).catch(function () {});
+      });
+    });
+    return chain;
+  }
+
+  function poll() {
+    if (!polling) return;
+    var list, quiet = false;
+    if (mode === 'dash') list = pids;
+    else {
+      quiet = true;
+      cat.n++;
+      var upSrc = !unsup['24'] ? '24' : (!unsup['14'] ? '14' : null);
+      list = [dnItem];
+      if (upSrc) list.push(upItems[upSrc]);
+      if (cat.n % 4 === 1) list = list.concat(slowItems);
+    }
+    runCycle(list, quiet).then(function () {
+      if (mode === 'cat') pushSample();
+      if (polling) setTimeout(poll, 60);
+    });
+  }
+
+  function decodeCodes(lines) {
+    var bytes = [];
+    lines.forEach(function (ln) {
+      var hex = ln.replace(/^\d+:/, '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      if (hex.indexOf('43') === 0) hex = hex.slice(2);
+      for (var i = 0; i + 1 < hex.length; i += 2) bytes.push(parseInt(hex.substr(i, 2), 16));
+    });
+    var out = [], letters = 'PCBU';
+    for (var i = 0; i + 1 < bytes.length; i += 2) {
+      var a = bytes[i], b = bytes[i + 1];
+      if (a === 0 && b === 0) continue;
+      out.push(letters[a >> 6] + ((a >> 4) & 3) + (a & 15).toString(16).toUpperCase() + ((b >> 4) & 15).toString(16).toUpperCase() + (b & 15).toString(16).toUpperCase());
+    }
+    return out;
+  }
+
+  function stopPolling() { polling = false; return busy; }
+  function resumePolling() { polling = true; poll(); }
+
+  // ---------- Cat test analysis ----------
+  function pushSample() {
+    if (cat.dn === null && cat.up === null) { updateCat(); return; }
+    var now = Date.now();
+    cat.samples.push({ t: now, up: cat.up, dn: cat.dn, rpm: cat.rpm });
+    while (cat.samples.length && now - cat.samples[0].t > 120000) cat.samples.shift();
+    if (cat.dn !== null) {
+      if (cat.min === null || cat.dn < cat.min) cat.min = cat.dn;
+      if (cat.max === null || cat.dn > cat.max) cat.max = cat.dn;
+    }
+    updateCat();
+  }
+
+  function crossings(vals, ref, hyst) {
+    var state = 0, n = 0;
+    vals.forEach(function (v) {
+      if (v > ref + hyst) { if (state === -1) n++; state = 1; }
+      else if (v < ref - hyst) { if (state === 1) n++; state = -1; }
+    });
+    return n;
+  }
+
+  function verdict() {
+    var warmOk = cat.coolant !== null && cat.coolant >= 160;
+    var rpmOk = cat.rpm !== null && cat.rpm >= 1800 && cat.rpm <= 3200;
+    var now = Date.now();
+    var win = cat.samples.filter(function (s) { return now - s.t <= 30000; });
+    var dn = win.filter(function (s) { return s.dn !== null; }).map(function (s) { return s.dn; });
+    var up = win.filter(function (s) { return s.up !== null; }).map(function (s) { return s.up; });
+    if (unsup['15']) return { cls: 'warn', text: 'The car did not answer the downstream sensor request.', note: 'Without that reading this test cannot compare the sensors. Try the raw console with 0115 and 0214 to see what the car supports.' };
+    if (!warmOk || !rpmOk) return { cls: '', text: 'Warm the engine and hold about 2,500 RPM.', note: 'The verdict appears after 30 seconds under those conditions.' };
+    if (dn.length < 20) return { cls: '', text: 'Collecting data…', note: 'Keep the RPM steady.' };
+    var dmin = Math.min.apply(null, dn), dmax = Math.max.apply(null, dn), swing = dmax - dmin;
+    var mean = dn.reduce(function (a, b) { return a + b; }, 0) / dn.length;
+    var upCross = 0, dnCross = crossings(dn, 0.45, 0.05);
+    if (up.length) upCross = cat.upKind === 'lambda' ? crossings(up, 1.0, 0.004) : crossings(up, 0.45, 0.05);
+    if (swing < 0.08 && (mean < 0.15 || mean > 0.85)) return { cls: 'bad', text: 'Downstream sensor is stuck at an extreme.', note: 'A flat reading near 0 V or above 0.85 V points at the sensor or its wiring, not the cat. Check the sensor before replacing the cat.' };
+    if (swing < 0.04 && mean > 0.4 && mean < 0.5) return { cls: 'bad', text: 'Downstream sensor is stuck near 0.45 V.', note: 'That is the value a sensor sits at when it is not working. Suspect the sensor, its heater circuit or its wiring.' };
+    if (swing < 0.3) return { cls: 'good', text: 'Downstream is steady. The cat looks healthy.', note: 'If the codes persist, run the throttle snap test to confirm the sensor reacts fast enough.' };
+    if (upCross >= 3 && dnCross >= upCross * 0.6 && swing > 0.4) return { cls: 'bad', text: 'Downstream switches like upstream. The cat is likely worn.', note: 'This matches P0420 and P2423. Rule out exhaust leaks and misfires, then confirm the downstream sensor passes the throttle snap test.' };
+    return { cls: 'warn', text: 'Mixed result. Keep holding the RPM.', note: 'Give it another 30 seconds, then run the throttle snap test.' };
+  }
+
+  function fmt(v, d) { return v === null || v === undefined ? '--' : v.toFixed(d); }
+
+  function updateCat() {
+    var warmOk = cat.coolant !== null && cat.coolant >= 160;
+    var rpmOk = cat.rpm !== null && cat.rpm >= 1800 && cat.rpm <= 3200;
+    $('chipWarm').textContent = 'Warm: ' + (cat.coolant === null ? '--' : cat.coolant + '°F');
+    $('chipWarm').className = 'chip ' + (cat.coolant === null ? '' : (warmOk ? 'good' : 'wait'));
+    $('chipRpm').textContent = 'RPM: ' + (cat.rpm === null ? '--' : cat.rpm);
+    $('chipRpm').className = 'chip ' + (cat.rpm === null ? '' : (rpmOk ? 'good' : 'wait'));
+    var now = Date.now();
+    var recent = cat.samples.filter(function (s) { return now - s.t <= 10000; }).length;
+    $('chipRate').textContent = 'Samples: ' + (recent / 10).toFixed(1) + '/s';
+
+    var v = verdict();
+    $('verdict').textContent = v.text;
+    $('verdict').className = 'verdict' + (v.cls ? ' ' + v.cls : '');
+    $('verdictNote').textContent = v.note;
+
+    if (cat.up !== null) {
+      $('upNow').textContent = cat.upKind === 'lambda' ? cat.up.toFixed(3) : cat.up.toFixed(2);
+      $('upUnit').textContent = cat.upKind === 'lambda' ? 'λ' : 'V';
+      $('upSub').textContent = cat.upKind === 'lambda' ? 'Air/fuel sensor, lambda ratio. 1.00 is ideal.' : 'Oxygen sensor voltage. Switches around 0.45 V.';
+    } else if (unsup['24'] && unsup['14']) {
+      $('upSub').textContent = 'Not supported by this car';
+    }
+    if (cat.dn !== null) { $('dnNow').textContent = cat.dn.toFixed(2); $('dnSub').textContent = 'Oxygen sensor voltage. Steady is good.'; }
+    else if (unsup['15']) { $('dnSub').textContent = 'Not supported by this car'; }
+    $('stft').textContent = fmt(cat.stft, 1);
+    $('ltft').textContent = fmt(cat.ltft, 1);
+    $('dnMin').textContent = fmt(cat.min, 2);
+    $('dnMax').textContent = fmt(cat.max, 2);
+    drawCharts();
+  }
+
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  function drawChart(cv, key, o) {
+    var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    var c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, w, h);
+    var line = cssVar('--line'), muted = cssVar('--muted'), color = cssVar(o.colorVar);
+    var L = 38, R = 8, T = 8, B = 18, pw = w - L - R, ph = h - T - B;
+    function y(v) { return T + ph * (1 - (v - o.min) / (o.max - o.min)); }
+    c.font = '10px ' + cssVar('--font-data');
+    c.textAlign = 'right'; c.textBaseline = 'middle';
+    o.ticks.forEach(function (tk) {
+      c.strokeStyle = line; c.lineWidth = 1; c.setLineDash([]);
+      c.beginPath(); c.moveTo(L, y(tk)); c.lineTo(w - R, y(tk)); c.stroke();
+      c.fillStyle = muted; c.fillText(tk.toFixed(o.dec), L - 5, y(tk));
+    });
+    c.strokeStyle = muted; c.lineWidth = 1; c.setLineDash([4, 4]);
+    c.beginPath(); c.moveTo(L, y(o.ref)); c.lineTo(w - R, y(o.ref)); c.stroke(); c.setLineDash([]);
+    c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = muted;
+    c.fillText('-60 s', L + 14, h - B + 4); c.fillText('-30 s', L + pw / 2, h - B + 4); c.fillText('now', w - R - 10, h - B + 4);
+    var now = Date.now(), started = false;
+    c.strokeStyle = color; c.lineWidth = 2; c.lineJoin = 'round';
+    c.beginPath();
+    cat.samples.forEach(function (s) {
+      var val = s[key];
+      if (val === null || now - s.t > WINDOW_MS) return;
+      var px = L + pw * (1 - (now - s.t) / WINDOW_MS);
+      var py = y(Math.max(o.min, Math.min(o.max, val)));
+      if (!started) { c.moveTo(px, py); started = true; } else c.lineTo(px, py);
+    });
+    c.stroke();
+  }
+
+  function drawCharts() {
+    if (mode !== 'cat') return;
+    var lambda = cat.upKind === 'lambda';
+    drawChart($('upChart'), 'up', lambda
+      ? { min: 0.8, max: 1.2, ref: 1.0, ticks: [0.8, 0.9, 1.0, 1.1, 1.2], dec: 2, colorVar: '--accent' }
+      : { min: 0, max: 1, ref: 0.45, ticks: [0, 0.25, 0.5, 0.75, 1], dec: 2, colorVar: '--accent' });
+    drawChart($('dnChart'), 'dn', { min: 0, max: 1, ref: 0.45, ticks: [0, 0.25, 0.5, 0.75, 1], dec: 2, colorVar: '--cool' });
+  }
+
+  function setMode(m) {
+    mode = m;
+    var isCat = m === 'cat';
+    $('tabDash').setAttribute('aria-selected', String(!isCat));
+    $('tabCat').setAttribute('aria-selected', String(isCat));
+    $('dashView').style.display = isCat ? 'none' : 'grid';
+    $('catView').style.display = isCat ? 'grid' : 'none';
+    $('catView').hidden = !isCat;
+    if (isCat) { updateCat(); }
+  }
+  $('tabDash').addEventListener('click', function () { setMode('dash'); });
+  $('tabCat').addEventListener('click', function () { setMode('cat'); });
+
+  $('resetRange').addEventListener('click', function () {
+    cat.min = null; cat.max = null;
+    $('dnMin').textContent = '--'; $('dnMax').textContent = '--';
+  });
+  $('copyData').addEventListener('click', function () {
+    var rows = ['seconds_ago,upstream,downstream,rpm'], now = Date.now();
+    cat.samples.slice(-300).forEach(function (s) {
+      rows.push(((now - s.t) / 1000).toFixed(1) + ',' + (s.up === null ? '' : s.up.toFixed(3)) + ',' + (s.dn === null ? '' : s.dn.toFixed(3)) + ',' + (s.rpm === null ? '' : s.rpm));
+    });
+    var text = rows.join('\n'), note = $('copyNote');
+    note.hidden = false;
+    function done(msg) { note.textContent = msg; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done('Copied ' + (rows.length - 1) + ' samples. Paste them into a message.'); }, function () { log(text); done('Copy was blocked. The data is in the raw console on the Dash tab.'); });
+    } else { log(text); done('Copy is not available here. The data is in the raw console on the Dash tab.'); }
+  });
+  window.addEventListener('resize', drawCharts);
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', drawCharts);
+  }
+
+  // ---------- Connection ----------
+  function connect() {
+    showWarn('');
+    setStatus('Choose your FIXD…');
+    navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE] }, { namePrefix: 'FIXD' }], optionalServices: [SERVICE] })
+      .then(function (d) {
+        device = d;
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+        setStatus('Connecting…');
+        return device.gatt.connect();
+      })
+      .then(function (server) { return server.getPrimaryService(SERVICE); })
+      .then(function (svc) { return Promise.all([svc.getCharacteristic(NOTIFY), svc.getCharacteristic(WRITE)]); })
+      .then(function (c) {
+        notifyChar = c[0]; writeChar = c[1];
+        notifyChar.addEventListener('characteristicvaluechanged', onNotify);
+        return notifyChar.startNotifications();
+      })
+      .then(function () {
+        enable(true);
+        setStatus('Setting up adapter…');
+        return send('ATZ', 5000).catch(function () {});
+      })
+      .then(function () { return send('ATE0'); })
+      .then(function () { return send('ATL0'); })
+      .then(function () { return send('ATS1'); })
+      .then(function () { return send('ATH0'); })
+      .then(function () { return send('ATSP0'); })
+      .then(function () {
+        setStatus('Finding car protocol…');
+        // The first data request makes the adapter search for the car's protocol, which can take several seconds.
+        return send('0100', 20000).catch(function () { showWarn('The car did not answer yet. Turn the ignition on (engine running is best) and tap Disconnect, then Connect again.'); });
+      })
+      .then(function () { fails = {}; unsup = {}; setStatus('Connected', 'on'); resumePolling(); })
+      .catch(function (e) {
+        if (e && e.name === 'NotFoundError') { setStatus('Not connected'); return; }
+        setStatus('Connection failed', 'err');
+        showWarn('Could not connect: ' + (e && e.message ? e.message : e) + '. Close the FIXD app, plug the sensor in, and try again.');
+        enable(false);
+      });
+  }
+
+  function onDisconnected() {
+    polling = false; waiter = null; enable(false);
+    if ($('dot').className.indexOf('err') === -1) setStatus('Disconnected');
+  }
+
+  $('connectBtn').addEventListener('click', connect);
+  $('disconnectBtn').addEventListener('click', function () {
+    polling = false;
+    if (device && device.gatt.connected) device.gatt.disconnect();
+  });
+
+  $('readCodes').addEventListener('click', function () {
+    var list = $('codes');
+    list.innerHTML = '<li class="none">Reading…</li>';
+    stopPolling().then(function () { return send('03', 8000); }).then(function (lines) {
+      var codes = decodeCodes(lines);
+      list.innerHTML = '';
+      if (!codes.length) { list.innerHTML = '<li class="none">No stored trouble codes.</li>'; }
+      codes.forEach(function (c) { var li = document.createElement('li'); li.textContent = c; list.appendChild(li); });
+    }).catch(function () {
+      list.innerHTML = '<li class="none">No reply. Try again with the ignition on.</li>';
+    }).then(resumePolling);
+  });
+
+  var clearArmed = null;
+  $('clearCodes').addEventListener('click', function () {
+    var btn = $('clearCodes'), note = $('clearNote');
+    if (!clearArmed) {
+      btn.textContent = 'Confirm clear';
+      note.hidden = false;
+      clearArmed = setTimeout(function () { clearArmed = null; btn.textContent = 'Clear codes'; note.hidden = true; }, 5000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null;
+    btn.textContent = 'Clear codes'; note.hidden = true;
+    stopPolling().then(function () { return send('04', 8000); }).then(function () {
+      $('codes').innerHTML = '<li class="none">Clear command sent. Read codes to check.</li>';
+    }).catch(function () {
+      $('codes').innerHTML = '<li class="none">No reply to the clear command.</li>';
+    }).then(resumePolling);
+  });
+
+  $('cmdForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('cmdInput').value.trim().toUpperCase();
+    if (!v || !writeChar) return;
+    $('cmdInput').value = '';
+    send(v, 8000).catch(function () { log('(no reply)'); });
+  });
+
+  window.addEventListener('beforeunload', function () { if (device && device.gatt.connected) device.gatt.disconnect(); });
+})();
+</script>
+
+</body></html>
