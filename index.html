@@ -120,6 +120,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   <div class="row">
     <button class="primary" id="connectBtn" type="button">Connect to FIXD</button>
     <button id="disconnectBtn" type="button" disabled>Disconnect</button>
+    <button id="connectAllBtn" type="button">Show all devices</button>
   </div>
 
   <div class="tabs" role="tablist" aria-label="Views">
@@ -241,11 +242,13 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   function enable(on) {
     ['disconnectBtn', 'readCodes', 'clearCodes', 'cmdSend'].forEach(function (id) { $(id).disabled = !on; });
     $('connectBtn').disabled = on;
+    $('connectAllBtn').disabled = on;
   }
 
   if (!navigator.bluetooth) {
     showWarn('This browser cannot use Bluetooth. On iPhone, open this page in the free Bluefy browser. On Android, use Chrome.');
     $('connectBtn').disabled = true;
+    $('connectAllBtn').disabled = true;
   }
 
   function onNotify(ev) {
@@ -533,7 +536,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   }
 
   // ---------- Connection ----------
-  function connect() {
+  function connect(all) {
     showWarn('');
     setStatus('Choose your FIXD…');
     var step = 'choosing the device';
@@ -541,7 +544,10 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     function twice(fn) {
       return fn().catch(function () { return new Promise(function (r) { setTimeout(r, 1500); }).then(fn); });
     }
-    navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE] }, { namePrefix: 'FIXD' }], optionalServices: [SERVICE] })
+    var options = all === true
+      ? { acceptAllDevices: true, optionalServices: [SERVICE] }
+      : { filters: [{ services: [SERVICE] }, { namePrefix: 'FIXD' }], optionalServices: [SERVICE] };
+    navigator.bluetooth.requestDevice(options)
       .then(function (d) {
         step = 'opening the connection';
         device = d;
@@ -587,7 +593,8 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     if ($('dot').className.indexOf('err') === -1) setStatus('Disconnected');
   }
 
-  $('connectBtn').addEventListener('click', connect);
+  $('connectBtn').addEventListener('click', function () { connect(false); });
+  $('connectAllBtn').addEventListener('click', function () { connect(true); });
   $('disconnectBtn').addEventListener('click', function () {
     polling = false;
     if (device && device.gatt.connected) device.gatt.disconnect();
