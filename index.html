@@ -2,218 +2,272 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
 <title>Camry Dash</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: one-column instrument panel with two views. Dash shows the basic gauges. Cat test stacks the upstream chart over the downstream chart on a shared 60 s time axis so the two can be compared by eye. */
+/* Layout: a friendly consumer-app feel. A sand-metallic header card, a big arc RPM gauge, soft rounded cards, pill buttons. Desert Sand Mica palette: warm sand grounds, bronze accent. */
 :root {
-  --bg: #eef0f2;
-  --panel: #ffffff;
-  --fg: #14181d;
-  --muted: #5d6874;
-  --line: #d3d8de;
-  --accent: #c2410c;
-  --cool: #1d6fb8;
-  --ok: #17803d;
-  --bad: #b42318;
-  --warn: #a15c07;
-  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, sans-serif;
-  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+  --bg: #efe6d4;
+  --card: #fbf7ee;
+  --fg: #2b251c;
+  --muted: #74684f;
+  --line: #e1d5ba;
+  --soft: #f0e6d0;
+  --accent: #8c5a2b;
+  --on-accent: #ffffff;
+  --cool: #2f6f8f;
+  --ok: #2c7a3c;
+  --ok-bg: #e2f0dc;
+  --bad: #ad2f22;
+  --bad-bg: #f8e0da;
+  --warn: #8f5b08;
+  --warn-bg: #f8ecd0;
+  --shadow: 0 1px 2px rgba(60, 40, 10, .06), 0 8px 22px rgba(60, 40, 10, .08);
+  --hero: linear-gradient(135deg, #d8c59a 0%, #efe2bf 48%, #cdb685 100%);
+  --hero-fg: #2b251c;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-data: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1317; --panel: #181e24; --fg: #e8ecf0; --muted: #8b97a3;
-    --line: #2a333c; --accent: #ff8a3d; --cool: #5cb3ff; --ok: #4cc27a; --bad: #ff6b5e; --warn: #f0b24a;
+    --bg: #17140f; --card: #221d16; --fg: #f3ead8; --muted: #b0a28a; --line: #352e22; --soft: #2d261c;
+    --accent: #dcb97c; --on-accent: #1f1608; --cool: #7fb7d6;
+    --ok: #74c788; --ok-bg: #1f3524; --bad: #ff8272; --bad-bg: #3e211c; --warn: #ecb85a; --warn-bg: #3a2d12;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+    --hero: linear-gradient(135deg, #4a3d27 0%, #6b5a38 48%, #3f3422 100%); --hero-fg: #f6edd8;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1317; --panel: #181e24; --fg: #e8ecf0; --muted: #8b97a3;
-  --line: #2a333c; --accent: #ff8a3d; --cool: #5cb3ff; --ok: #4cc27a; --bad: #ff6b5e; --warn: #f0b24a;
+  --bg: #17140f; --card: #221d16; --fg: #f3ead8; --muted: #b0a28a; --line: #352e22; --soft: #2d261c;
+  --accent: #dcb97c; --on-accent: #1f1608; --cool: #7fb7d6;
+  --ok: #74c788; --ok-bg: #1f3524; --bad: #ff8272; --bad-bg: #3e211c; --warn: #ecb85a; --warn-bg: #3a2d12;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  --hero: linear-gradient(135deg, #4a3d27 0%, #6b5a38 48%, #3f3422 100%); --hero-fg: #f6edd8;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
-  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px;
-  padding-block: 16px 40px;
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.4;
+  padding-block: 16px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 main { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-h1 { font-family: var(--font-display); font-weight: 700; font-size: 34px; letter-spacing: .02em; text-transform: uppercase; margin: 0; line-height: 1; }
-.sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-.status { font-family: var(--font-data); font-size: 12px; display: flex; align-items: center; gap: 8px; }
+h1 { font-size: 28px; font-weight: 800; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
+h2 { font-size: 20px; font-weight: 700; margin: 12px 0 -2px; line-height: 1.2; }
+.hero {
+  background: var(--hero); color: var(--hero-fg); border-radius: 22px; padding: 18px 18px 18px 20px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: var(--shadow);
+}
+.hero .sub { font-size: 14px; font-weight: 500; opacity: .8; margin-top: 4px; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; background: var(--card); color: var(--fg); padding: 8px 14px; border-radius: 999px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
 .dot.on { background: var(--ok); }
 .dot.err { background: var(--bad); }
 button {
-  font: inherit; font-weight: 500; color: var(--fg); background: var(--panel);
-  border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; min-height: 44px; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--fg); background: var(--soft); border: 0; border-radius: 999px;
+  padding: 0 22px; min-height: 48px; cursor: pointer; transition: transform .08s ease;
 }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-:root[data-theme="dark"] button.primary { color: #1a0d03; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.primary { color: #1a0d03; } }
-button:disabled { opacity: .5; cursor: default; }
-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
-.tabs button { border: 0; border-radius: 0; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
-:root[data-theme="dark"] .tabs button[aria-selected="true"] { color: #1a0d03; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs button[aria-selected="true"] { color: #1a0d03; } }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
-.label { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-.rpm { display: grid; gap: 10px; }
-.rpm .val { font-family: var(--font-display); font-weight: 700; font-size: 84px; line-height: .95; font-variant-numeric: tabular-nums; }
-.rpm .val small { font-size: 22px; color: var(--muted); font-weight: 500; margin-left: 6px; letter-spacing: .06em; }
-.bar { position: relative; height: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); transition: width .25s linear; }
-.ticks { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 11px; color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.tile .val { font-family: var(--font-display); font-weight: 700; font-size: 48px; line-height: 1.05; font-variant-numeric: tabular-nums; margin-top: 4px; }
-.tile .val small { font-size: 18px; color: var(--muted); font-weight: 500; margin-left: 4px; }
-.tile.small .val { font-size: 36px; }
+button:active:not(:disabled) { transform: scale(.97); }
+button.primary { background: var(--accent); color: var(--on-accent); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--soft); border-radius: 999px; padding: 4px; gap: 4px; margin-top: 12px; }
+.seg button { background: transparent; color: var(--muted); min-height: 44px; padding: 0 12px; }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--fg); box-shadow: var(--shadow); }
+.check { display: flex; align-items: center; gap: 12px; margin-top: 14px; min-height: 44px; font-weight: 500; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.card { background: var(--card); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); }
+.label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.card-title { font-size: 17px; font-weight: 700; }
+.gauge-wrap { position: relative; max-width: 340px; margin: 6px auto 0; }
+.arc { display: block; width: 100%; }
+.arc path { fill: none; stroke-width: 16; stroke-linecap: round; }
+.arc .arc-track { stroke: var(--soft); }
+.arc .arc-val { stroke: var(--accent); transition: stroke-dasharray .3s ease; }
+.gauge-read { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font-size: 54px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.gauge-read small { display: block; font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: .04em; margin-top: 6px; }
+.gauge-scale { display: flex; justify-content: space-between; max-width: 340px; margin: 4px auto 0; font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 6px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { padding: 16px; }
+.tile .val { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; margin-top: 6px; letter-spacing: -.01em; }
+.tile .val small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 4px; letter-spacing: 0; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .codes { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
-.codes li { font-family: var(--font-data); font-size: 18px; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
-.codes li.none { font-family: var(--font-body); font-size: 15px; color: var(--muted); }
-.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; line-height: 1.45; }
+.codes li { font-size: 17px; font-weight: 700; background: var(--soft); border-radius: 14px; padding: 12px 16px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.codes li.none { font-size: 15px; font-weight: 500; color: var(--muted); background: transparent; padding: 4px 0; }
+.codes li .st { font-size: 13px; font-weight: 700; }
+.codes li .st.good { color: var(--ok); }
+.codes li .st.wait { color: var(--warn); }
+.note { color: var(--muted); font-size: 14px; margin: 10px 0 0; line-height: 1.45; }
 pre#log {
-  font-family: var(--font-data); font-size: 12px; background: var(--bg); border: 1px solid var(--line);
-  border-radius: 6px; padding: 10px; margin: 10px 0 0; height: 150px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  font-family: var(--font-mono); font-size: 12px; background: var(--soft); border-radius: 14px;
+  padding: 12px; margin: 12px 0 0; height: 150px; overflow: auto; white-space: pre-wrap; word-break: break-all;
 }
 form.cmd { display: flex; gap: 8px; margin-top: 10px; }
 form.cmd input {
-  flex: 1; min-width: 0; font-family: var(--font-data); font-size: 16px; padding: 10px 12px; min-height: 44px;
-  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; text-transform: uppercase;
+  flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 16px; padding: 0 16px; min-height: 48px;
+  background: var(--soft); color: var(--fg); border: 0; border-radius: 999px; text-transform: uppercase;
 }
-#warn { border-color: var(--bad); color: var(--bad); }
-
+#warn { background: var(--bad-bg); color: var(--bad); font-weight: 600; box-shadow: none; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip { font-family: var(--font-data); font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--panel); }
-.chip.good { border-color: var(--ok); color: var(--ok); }
-.chip.wait { border-color: var(--warn); color: var(--warn); }
-.verdict { font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1.15; margin-top: 6px; text-wrap: balance; }
-.verdict.good { color: var(--ok); }
-.verdict.bad { color: var(--bad); }
-.verdict.warn { color: var(--warn); }
-.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-.chart-head .now { font-family: var(--font-display); font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums; }
-.chart-head .now small { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+.chip { font-size: 13px; font-weight: 600; border-radius: 999px; padding: 7px 14px; background: var(--soft); color: var(--muted); }
+.chip.good { background: var(--ok-bg); color: var(--ok); }
+.chip.wait { background: var(--warn-bg); color: var(--warn); }
+.verdict { font-size: 20px; font-weight: 700; line-height: 1.25; margin-top: 10px; padding: 14px 16px; border-radius: 16px; background: var(--soft); text-wrap: balance; }
+.verdict.good { background: var(--ok-bg); color: var(--ok); }
+.verdict.bad { background: var(--bad-bg); color: var(--bad); }
+.verdict.warn { background: var(--warn-bg); color: var(--warn); }
+.chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.chart-head .now { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.chart-head .now small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 4px; }
 canvas.chart { display: block; width: 100%; height: 150px; }
-.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.45; }
-@media (max-width: 400px) { .rpm .val { font-size: 68px; } .tile .val { font-size: 40px; } .tile.small .val { font-size: 32px; } }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+details.card summary { cursor: pointer; font-size: 17px; font-weight: 700; min-height: 28px; }
+ol.steps { margin: 12px 0 0; padding-left: 22px; display: grid; gap: 10px; line-height: 1.45; }
+textarea#copyBox { width: 100%; height: 120px; margin-top: 10px; font-family: var(--font-mono); font-size: 12px; background: var(--soft); color: var(--fg); border: 0; border-radius: 14px; padding: 12px; }
+@media (max-width: 400px) { .gauge-read { font-size: 46px; } .tile .val { font-size: 26px; } }
 </style>
-
 <main>
-  <header>
+  <header class="hero">
     <div>
       <h1>Camry Dash</h1>
-      <div class="sub">2006 Camry · FIXD sensor over Bluetooth LE</div>
+      <div class="sub">2006 Camry · OBD2 sensor</div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span></div>
   </header>
 
-  <div class="panel" id="warn" hidden></div>
+  <div class="card" id="warn" hidden></div>
 
   <div class="row">
-    <button class="primary" id="connectBtn" type="button">Connect to FIXD</button>
+    <button class="primary" id="connectBtn" type="button">Connect sensor</button>
     <button id="disconnectBtn" type="button" disabled>Disconnect</button>
     <button id="connectAllBtn" type="button">Show all devices</button>
   </div>
 
-  <div class="tabs" role="tablist" aria-label="Views">
-    <button type="button" role="tab" id="tabDash" aria-selected="true" aria-controls="dashView">Dash</button>
-    <button type="button" role="tab" id="tabCat" aria-selected="false" aria-controls="catView">Cat test</button>
-  </div>
-
-  <div id="dashView" role="tabpanel" aria-labelledby="tabDash" style="display:grid;gap:14px">
-    <section class="panel rpm" aria-label="Engine speed">
-      <div class="label">Engine speed</div>
-      <div class="val"><span id="rpm">--</span><small>RPM</small></div>
-      <div class="bar"><i id="rpmBar"></i></div>
-      <div class="ticks"><span>0</span><span>2</span><span>4</span><span>6</span><span>8 ×1000</span></div>
-    </section>
-
-    <section class="grid" aria-label="Gauges">
-      <div class="panel tile"><div class="label">Speed</div><div class="val"><span id="speed">--</span><small>mph</small></div></div>
-      <div class="panel tile"><div class="label">Coolant</div><div class="val"><span id="coolant">--</span><small>°F</small></div></div>
-      <div class="panel tile"><div class="label">Throttle</div><div class="val"><span id="throttle">--</span><small>%</small></div></div>
-      <div class="panel tile"><div class="label">Engine load</div><div class="val"><span id="load">--</span><small>%</small></div></div>
-    </section>
-
-    <section class="panel">
-      <div class="label">Trouble codes</div>
-      <div class="row" style="margin-top:10px">
-        <button id="readCodes" type="button" disabled>Read codes</button>
-        <button id="clearCodes" type="button" disabled>Clear codes</button>
-      </div>
-      <ul class="codes" id="codes"><li class="none">Connect, then tap Read codes.</li></ul>
-      <p class="note" id="clearNote" hidden>Clearing codes also resets the car's readiness monitors. Tap Clear codes again within 5 seconds to confirm.</p>
-    </section>
-
-    <section class="panel">
-      <div class="label">Raw console</div>
-      <pre id="log" aria-live="polite"></pre>
-      <form class="cmd" id="cmdForm">
-        <input id="cmdInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 010C" aria-label="OBD command">
-        <button type="submit" id="cmdSend" disabled>Send</button>
-      </form>
-    </section>
-  </div>
-
-  <div id="catView" role="tabpanel" aria-labelledby="tabCat" hidden style="display:none;gap:14px">
-    <section class="panel">
-      <div class="label">Bank 1 catalyst check · P0420 / P2423</div>
-      <div class="verdict" id="verdict">Connect to start the test.</div>
-      <p class="note" id="verdictNote"></p>
-      <div class="chips" style="margin-top:12px">
-        <span class="chip" id="chipWarm">Warm: --</span>
-        <span class="chip" id="chipRpm">RPM: --</span>
-        <span class="chip" id="chipRate">Samples: --</span>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="chart-head">
-        <div><div class="label"><span class="swatch" style="background:var(--accent)"></span>Upstream · before cat</div><div class="note" id="upSub" style="margin:2px 0 0">No reading yet</div></div>
-        <div class="now" style="color:var(--accent)"><span id="upNow">--</span><small id="upUnit"></small></div>
-      </div>
-      <canvas class="chart" id="upChart" aria-label="Upstream sensor, last 60 seconds"></canvas>
-    </section>
-
-    <section class="panel">
-      <div class="chart-head">
-        <div><div class="label"><span class="swatch" style="background:var(--cool)"></span>Downstream · after cat</div><div class="note" id="dnSub" style="margin:2px 0 0">No reading yet</div></div>
-        <div class="now" style="color:var(--cool)"><span id="dnNow">--</span><small>V</small></div>
-      </div>
-      <canvas class="chart" id="dnChart" aria-label="Downstream sensor, last 60 seconds"></canvas>
-    </section>
-
-    <section class="grid" aria-label="Readings">
-      <div class="panel tile small"><div class="label">Short-term trim</div><div class="val"><span id="stft">--</span><small>%</small></div></div>
-      <div class="panel tile small"><div class="label">Long-term trim</div><div class="val"><span id="ltft">--</span><small>%</small></div></div>
-      <div class="panel tile small"><div class="label">Downstream low</div><div class="val"><span id="dnMin">--</span><small>V</small></div></div>
-      <div class="panel tile small"><div class="label">Downstream high</div><div class="val"><span id="dnMax">--</span><small>V</small></div></div>
-    </section>
-
-    <div class="row">
-      <button id="resetRange" type="button">Reset low / high</button>
-      <button id="copyData" type="button">Copy data</button>
+  <section class="card">
+    <div class="card-title">Refresh faster</div>
+    <div class="seg" role="group" aria-label="What to refresh faster">
+      <button type="button" id="profSensors" aria-pressed="true">Catalyst sensors</button>
+      <button type="button" id="profGauges" aria-pressed="false">Gauges</button>
     </div>
-    <p class="note" id="copyNote" style="margin-top:-6px" hidden></p>
+    <p class="note">The sensor answers a few requests per second, so it can't refresh everything at once. Pick what matters right now.</p>
+    <label class="check"><input type="checkbox" id="awake" checked> Keep screen on while connected</label>
+    <p class="note" id="awakeNote" hidden></p>
+  </section>
 
-    <section class="panel">
-      <div class="label">How to run the test</div>
-      <ol class="steps">
-        <li>Park outdoors with the parking brake on. Let the engine warm up until the Warm chip turns green.</li>
-        <li>Hold the engine near 2,500 RPM for about 30 seconds. Watch both charts.</li>
-        <li>Healthy cat: the lower chart stays fairly flat while the upper one swings. Worn cat: the lower chart swings like the upper one.</li>
-        <li>Tap Reset low / high, snap the throttle open once and let go. A good downstream sensor reaches above 0.80 V, then drops below 0.20 V.</li>
-      </ol>
-    </section>
-  </div>
+  <section class="card" aria-label="Engine speed">
+    <div class="label">Engine speed</div>
+    <div class="gauge-wrap">
+      <svg class="arc" viewBox="0 0 220 124" role="img" aria-label="Engine speed gauge">
+        <path class="arc-track" d="M 20 108 A 90 90 0 0 1 200 108" pathLength="100"></path>
+        <path class="arc-val" id="rpmArc" d="M 20 108 A 90 90 0 0 1 200 108" pathLength="100" stroke-dasharray="0 100"></path>
+      </svg>
+      <div class="gauge-read"><span id="rpm">--</span><small>RPM</small></div>
+    </div>
+    <div class="gauge-scale"><span>0</span><span>8,000</span></div>
+  </section>
+
+  <section class="grid" aria-label="Gauges">
+    <div class="card tile"><div class="label">Speed</div><div class="val"><span id="speed">--</span><small>mph</small></div></div>
+    <div class="card tile"><div class="label">Coolant</div><div class="val"><span id="coolant">--</span><small>°F</small></div></div>
+    <div class="card tile"><div class="label">Throttle</div><div class="val"><span id="throttle">--</span><small>%</small></div></div>
+    <div class="card tile"><div class="label">Engine load</div><div class="val"><span id="load">--</span><small>%</small></div></div>
+    <div class="card tile"><div class="label">Air flow</div><div class="val"><span id="maf">--</span><small>g/s</small></div></div>
+    <div class="card tile"><div class="label">Intake air</div><div class="val"><span id="iat">--</span><small>°F</small></div></div>
+    <div class="card tile"><div class="label">Spark timing</div><div class="val"><span id="timing">--</span><small>°</small></div></div>
+    <div class="card tile"><div class="label">Battery</div><div class="val"><span id="battery">--</span><small>V</small></div></div>
+  </section>
+
+  <h2>Catalyst check</h2>
+  <section class="card">
+    <div class="label">Bank 1 · codes P0420 and P2423</div>
+    <div class="verdict" id="verdict">Connect to start the test.</div>
+    <p class="note" id="verdictNote"></p>
+    <div class="chips" style="margin-top:14px">
+      <span class="chip" id="chipWarm">Warm: --</span>
+      <span class="chip" id="chipRpm">RPM: --</span>
+      <span class="chip" id="chipRate">Samples: --</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="chart-head">
+      <div><div class="card-title"><span class="swatch" style="background:var(--accent)"></span>Upstream</div><div class="note" id="upSub" style="margin:2px 0 0">No reading yet</div></div>
+      <div class="now" style="color:var(--accent)"><span id="upNow">--</span><small id="upUnit"></small></div>
+    </div>
+    <canvas class="chart" id="upChart" aria-label="Upstream sensor, last 60 seconds"></canvas>
+  </section>
+
+  <section class="card">
+    <div class="chart-head">
+      <div><div class="card-title"><span class="swatch" style="background:var(--cool)"></span>Downstream</div><div class="note" id="dnSub" style="margin:2px 0 0">No reading yet</div></div>
+      <div class="now" style="color:var(--cool)"><span id="dnNow">--</span><small>V</small></div>
+    </div>
+    <canvas class="chart" id="dnChart" aria-label="Downstream sensor, last 60 seconds"></canvas>
+  </section>
+
+  <section class="grid" aria-label="Fuel trims and downstream range">
+    <div class="card tile"><div class="label">Short-term trim</div><div class="val"><span id="stft">--</span><small>%</small></div></div>
+    <div class="card tile"><div class="label">Long-term trim</div><div class="val"><span id="ltft">--</span><small>%</small></div></div>
+    <div class="card tile"><div class="label">Downstream low</div><div class="val"><span id="dnMin">--</span><small>V</small></div></div>
+    <div class="card tile"><div class="label">Downstream high</div><div class="val"><span id="dnMax">--</span><small>V</small></div></div>
+  </section>
+
+  <section class="card">
+    <div class="card-title">Save your data</div>
+    <p class="note" style="margin-top:4px">Copies every reading from the last 10 minutes so you can paste it into a note or message.</p>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="copyData" type="button">Copy last 10 minutes</button>
+      <button id="resetRange" type="button">Reset low / high</button>
+    </div>
+    <p class="note" id="copyNote" hidden></p>
+    <textarea id="copyBox" hidden readonly aria-label="Data to copy"></textarea>
+  </section>
+
+  <h2>Codes and readiness</h2>
+  <section class="card">
+    <div class="row">
+      <button class="primary" id="readCodes" type="button" disabled>Read codes</button>
+      <button id="readPending" type="button" disabled>Pending codes</button>
+      <button id="clearCodes" type="button" disabled>Clear codes</button>
+    </div>
+    <div class="label" style="margin-top:16px">Stored codes</div>
+    <ul class="codes" id="codes" style="margin-top:6px"><li class="none">Tap Read codes.</li></ul>
+    <div class="label" style="margin-top:16px">Pending codes</div>
+    <ul class="codes" id="pending" style="margin-top:6px"><li class="none">Tap Pending codes.</li></ul>
+    <p class="note" id="clearNote" hidden>Clearing codes also resets the car's readiness checks. Tap Clear codes again within 5 seconds to confirm.</p>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="card-title">Emissions readiness</div>
+      <button id="readiness" type="button" disabled>Check readiness</button>
+    </div>
+    <div class="verdict" id="readySummary" style="font-size:17px">Not checked yet.</div>
+    <ul class="codes" id="ready" style="margin-top:10px"></ul>
+  </section>
+
+  <details class="card">
+    <summary>How to run the catalyst test</summary>
+    <ol class="steps">
+      <li>Park outdoors with the parking brake on, or have a passenger run the page while you drive. Let the engine warm up until Warm turns green.</li>
+      <li>Hold the engine near 2,500 RPM for about 30 seconds, or cruise steadily at 45 to 60 mph. Watch both charts.</li>
+      <li>Healthy cat: the lower chart stays fairly flat while the upper one swings. Worn cat: the lower chart swings like the upper one.</li>
+      <li>Tap Reset low / high, snap the throttle open once and let go. A good downstream sensor reaches above 0.80 V, then drops below 0.20 V.</li>
+      <li>Tap Copy last 10 minutes to keep the data.</li>
+    </ol>
+  </details>
+
+  <details class="card">
+    <summary>Raw console</summary>
+    <pre id="log" aria-live="polite"></pre>
+    <form class="cmd" id="cmdForm">
+      <input id="cmdInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 010C" aria-label="OBD command">
+      <button type="submit" id="cmdSend" disabled>Send</button>
+    </form>
+  </details>
 </main>
 
 <script>
@@ -223,10 +277,13 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   var device = null, notifyChar = null, writeChar = null;
   var buf = '', waiter = null, polling = false, busy = Promise.resolve();
   var enc = new TextEncoder(), dec = new TextDecoder();
-  var mode = 'dash';
-  var WINDOW_MS = 60000;
-  var cat = { samples: [], up: null, dn: null, rpm: null, coolant: null, stft: null, ltft: null, upKind: null, min: null, max: null, n: 0 };
-  var fails = {}, unsup = {};
+  var WINDOW_MS = 60000, KEEP_MS = 600000;
+  var cat = {
+    samples: [], up: null, dn: null, upKind: null, rpm: null, speed: null, coolant: null, throttle: null, load: null,
+    stft: null, ltft: null, maf: null, iat: null, timing: null, battery: null, min: null, max: null, n: 0
+  };
+  var fails = {}, unsup = {}, lastOk = Date.now(), silent = false, profile = 'sensors';
+  var wl = null;
 
   function log(line) {
     var el = $('log');
@@ -240,13 +297,13 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   }
   function showWarn(msg) { var w = $('warn'); w.textContent = msg; w.hidden = !msg; }
   function enable(on) {
-    ['disconnectBtn', 'readCodes', 'clearCodes', 'cmdSend'].forEach(function (id) { $(id).disabled = !on; });
+    ['disconnectBtn', 'readCodes', 'readPending', 'clearCodes', 'readiness', 'cmdSend'].forEach(function (id) { $(id).disabled = !on; });
     $('connectBtn').disabled = on;
     $('connectAllBtn').disabled = on;
   }
 
   if (!navigator.bluetooth) {
-    showWarn('This browser cannot use Bluetooth. On iPhone, open this page in the free Bluefy browser. On Android, use Chrome.');
+    showWarn('This browser cannot use Bluetooth. On iPhone, open this page in the free Bluefy browser. On Android or a laptop, use Chrome.');
     $('connectBtn').disabled = true;
     $('connectAllBtn').disabled = true;
   }
@@ -302,38 +359,67 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     return null;
   }
 
-  var pids = [
-    { cmd: '010C', pid: '0C', apply: function (b) { var v = Math.round((b[0] * 256 + b[1]) / 4); $('rpm').textContent = v; $('rpmBar').style.width = Math.min(100, v / 80) + '%'; } },
-    { cmd: '010D', pid: '0D', apply: function (b) { $('speed').textContent = Math.round(b[0] * 0.621371); } },
-    { cmd: '0105', pid: '05', apply: function (b) { $('coolant').textContent = Math.round((b[0] - 40) * 9 / 5 + 32); } },
-    { cmd: '0111', pid: '11', apply: function (b) { $('throttle').textContent = Math.round(b[0] * 100 / 255); } },
-    { cmd: '0104', pid: '04', apply: function (b) { $('load').textContent = Math.round(b[0] * 100 / 255); } }
-  ];
-
-  // Cat test PIDs. Upstream is tried as a wideband air/fuel sensor (0124) first, then as a normal O2 sensor (0114).
-  var dnItem = { cmd: '0115', pid: '15', apply: function (b) { cat.dn = b[0] * 0.005; } };
-  var upItems = {
-    '24': { cmd: '0124', pid: '24', apply: function (b) { if (b.length >= 2) { cat.up = (b[0] * 256 + b[1]) * 2 / 65536; cat.upKind = 'lambda'; } } },
-    '14': { cmd: '0114', pid: '14', apply: function (b) { cat.up = b[0] * 0.005; cat.upKind = 'volts'; } }
+  // Every value the page polls. apply() stores the decoded number in the shared state.
+  var I = {
+    dn: { cmd: '0115', pid: '15', apply: function (b) { cat.dn = b[0] * 0.005; } },
+    upA: { cmd: '0124', pid: '24', apply: function (b) { if (b.length >= 2) { cat.up = (b[0] * 256 + b[1]) * 2 / 65536; cat.upKind = 'lambda'; } } },
+    upB: { cmd: '0114', pid: '14', apply: function (b) { cat.up = b[0] * 0.005; cat.upKind = 'volts'; } },
+    rpm: { cmd: '010C', pid: '0C', apply: function (b) { if (b.length >= 2) cat.rpm = Math.round((b[0] * 256 + b[1]) / 4); } },
+    speed: { cmd: '010D', pid: '0D', apply: function (b) { cat.speed = b[0]; } },
+    coolant: { cmd: '0105', pid: '05', apply: function (b) { cat.coolant = Math.round((b[0] - 40) * 9 / 5 + 32); } },
+    throttle: { cmd: '0111', pid: '11', apply: function (b) { cat.throttle = b[0] * 100 / 255; } },
+    load: { cmd: '0104', pid: '04', apply: function (b) { cat.load = b[0] * 100 / 255; } },
+    stft: { cmd: '0106', pid: '06', apply: function (b) { cat.stft = (b[0] - 128) * 100 / 128; } },
+    ltft: { cmd: '0107', pid: '07', apply: function (b) { cat.ltft = (b[0] - 128) * 100 / 128; } },
+    maf: { cmd: '0110', pid: '10', apply: function (b) { if (b.length >= 2) cat.maf = (b[0] * 256 + b[1]) / 100; } },
+    iat: { cmd: '010F', pid: '0F', apply: function (b) { cat.iat = Math.round((b[0] - 40) * 9 / 5 + 32); } },
+    timing: { cmd: '010E', pid: '0E', apply: function (b) { cat.timing = b[0] / 2 - 64; } },
+    battery: { cmd: 'ATRV', pid: 'RV', parse: function (lines) {
+      var m = lines.join(' ').match(/(\d+(?:\.\d+)?)\s*V/i);
+      if (m) { cat.battery = parseFloat(m[1]); return true; }
+      return false;
+    } }
   };
-  var slowItems = [
-    { cmd: '010C', pid: '0C', apply: function (b) { cat.rpm = Math.round((b[0] * 256 + b[1]) / 4); } },
-    { cmd: '0105', pid: '05', apply: function (b) { cat.coolant = Math.round((b[0] - 40) * 9 / 5 + 32); } },
-    { cmd: '0106', pid: '06', apply: function (b) { cat.stft = (b[0] - 128) * 100 / 128; } },
-    { cmd: '0107', pid: '07', apply: function (b) { cat.ltft = (b[0] - 128) * 100 / 128; } }
-  ];
 
-  function runCycle(list, quiet) {
+  function upItem() { return !unsup['24'] ? I.upA : (!unsup['14'] ? I.upB : null); }
+
+  function cycleList() {
+    cat.n++;
+    var n = cat.n, up = upItem(), list;
+    if (profile === 'sensors') {
+      list = [I.dn];
+      if (up) list.push(up);
+      if (n % 4 === 1) list = list.concat([I.rpm, I.coolant, I.stft, I.ltft, I.speed]);
+      if (n % 12 === 2) list = list.concat([I.throttle, I.load, I.maf, I.iat, I.timing, I.battery]);
+    } else {
+      list = [I.rpm, I.speed, I.throttle];
+      if (n % 2 === 0) { list.push(I.dn); if (up) list.push(up); }
+      if (n % 6 === 3) list = list.concat([I.coolant, I.load, I.stft, I.ltft, I.maf, I.iat, I.timing, I.battery]);
+    }
+    return list;
+  }
+
+  function runCycle(list) {
     var chain = Promise.resolve();
     list.forEach(function (p) {
       chain = chain.then(function () {
         if (!polling || unsup[p.pid]) return;
-        return send(p.cmd, 4000, quiet).then(function (lines) {
-          var b = pidBytes(lines, p.pid);
-          if (b && b.length) { fails[p.pid] = 0; p.apply(b); }
-          else {
+        return send(p.cmd, 4000, true).then(function (lines) {
+          var ok = false;
+          if (p.parse) { ok = p.parse(lines); }
+          else { var b = pidBytes(lines, p.pid); if (b && b.length) { p.apply(b); ok = true; } }
+          if (ok) {
+            fails[p.pid] = 0;
+            if (!p.parse) {
+              lastOk = Date.now();
+              if (silent) { silent = false; setStatus('Connected', 'on'); }
+            }
+          } else if (Date.now() - lastOk > 6000) {
+            // Nothing has answered for a while, so the car is off or asleep. Do not mark PIDs as unsupported.
+            if (!silent) { silent = true; setStatus('Car not answering', 'err'); }
+          } else {
             fails[p.pid] = (fails[p.pid] || 0) + 1;
-            if (fails[p.pid] >= 3 && mode === 'cat') { unsup[p.pid] = true; log('PID ' + p.pid + ' not supported by this car'); }
+            if (fails[p.pid] >= 3) { unsup[p.pid] = true; log('PID ' + p.pid + ' not supported by this car'); }
           }
         }).catch(function () {});
       });
@@ -343,52 +429,119 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
 
   function poll() {
     if (!polling) return;
-    var list, quiet = false;
-    if (mode === 'dash') list = pids;
-    else {
-      quiet = true;
-      cat.n++;
-      var upSrc = !unsup['24'] ? '24' : (!unsup['14'] ? '14' : null);
-      list = [dnItem];
-      if (upSrc) list.push(upItems[upSrc]);
-      if (cat.n % 4 === 1) list = list.concat(slowItems);
-    }
-    runCycle(list, quiet).then(function () {
-      if (mode === 'cat') pushSample();
+    runCycle(cycleList()).then(function () {
+      pushSample();
+      render();
       if (polling) setTimeout(poll, 60);
     });
   }
 
-  function decodeCodes(lines) {
-    var bytes = [];
+  function stopPolling() { polling = false; return busy; }
+  function resumePolling() { if (!device || !device.gatt.connected) return; polling = true; poll(); }
+  function withPause(fn) { return stopPolling().then(fn).catch(function () {}).then(resumePolling); }
+
+  // ---------- Codes and readiness ----------
+  function decodeCodes(lines, prefix) {
+    var out = [], letters = 'PCBU';
     lines.forEach(function (ln) {
       var hex = ln.replace(/^\d+:/, '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      if (hex.indexOf('43') === 0) hex = hex.slice(2);
+      if (hex.indexOf(prefix) === 0) hex = hex.slice(2);
+      var bytes = [];
       for (var i = 0; i + 1 < hex.length; i += 2) bytes.push(parseInt(hex.substr(i, 2), 16));
+      // A trailing odd byte is the message checksum on this car's protocol, so only whole pairs count.
+      for (var j = 0; j + 1 < bytes.length; j += 2) {
+        var a = bytes[j], b = bytes[j + 1];
+        if (a === 0 && b === 0) continue;
+        var code = letters[a >> 6] + ((a >> 4) & 3) + (a & 15).toString(16).toUpperCase() + ((b >> 4) & 15).toString(16).toUpperCase() + (b & 15).toString(16).toUpperCase();
+        if (out.indexOf(code) === -1) out.push(code);
+      }
     });
-    var out = [], letters = 'PCBU';
-    for (var i = 0; i + 1 < bytes.length; i += 2) {
-      var a = bytes[i], b = bytes[i + 1];
-      if (a === 0 && b === 0) continue;
-      out.push(letters[a >> 6] + ((a >> 4) & 3) + (a & 15).toString(16).toUpperCase() + ((b >> 4) & 15).toString(16).toUpperCase() + (b & 15).toString(16).toUpperCase());
-    }
     return out;
   }
 
-  function stopPolling() { polling = false; return busy; }
-  function resumePolling() { polling = true; poll(); }
+  function listCodes(el, lines, prefix, emptyText) {
+    var codes = decodeCodes(lines, prefix);
+    el.innerHTML = '';
+    if (!codes.length) { el.innerHTML = '<li class="none">' + emptyText + '</li>'; return; }
+    codes.forEach(function (c) { var li = document.createElement('li'); li.textContent = c; el.appendChild(li); });
+  }
 
-  // ---------- Cat test analysis ----------
+  $('readCodes').addEventListener('click', function () {
+    $('codes').innerHTML = '<li class="none">Reading…</li>';
+    withPause(function () {
+      return send('03', 8000).then(function (lines) { listCodes($('codes'), lines, '43', 'No stored trouble codes.'); })
+        .catch(function () { $('codes').innerHTML = '<li class="none">No reply. Try again with the ignition on.</li>'; });
+    });
+  });
+
+  $('readPending').addEventListener('click', function () {
+    $('pending').innerHTML = '<li class="none">Reading…</li>';
+    withPause(function () {
+      return send('07', 8000).then(function (lines) { listCodes($('pending'), lines, '47', 'No pending trouble codes.'); })
+        .catch(function () { $('pending').innerHTML = '<li class="none">No reply. Try again with the ignition on.</li>'; });
+    });
+  });
+
+  var clearArmed = null;
+  $('clearCodes').addEventListener('click', function () {
+    var btn = $('clearCodes'), note = $('clearNote');
+    if (!clearArmed) {
+      btn.textContent = 'Confirm clear';
+      note.hidden = false;
+      clearArmed = setTimeout(function () { clearArmed = null; btn.textContent = 'Clear codes'; note.hidden = true; }, 5000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null;
+    btn.textContent = 'Clear codes'; note.hidden = true;
+    withPause(function () {
+      return send('04', 8000).then(function () {
+        $('codes').innerHTML = '<li class="none">Clear command sent. Read codes to check.</li>';
+        $('pending').innerHTML = '<li class="none">Tap Pending codes.</li>';
+      }).catch(function () { $('codes').innerHTML = '<li class="none">No reply to the clear command.</li>'; });
+    });
+  });
+
+  var MONITORS = [['Catalyst', 0], ['Heated catalyst', 1], ['EVAP system', 2], ['Secondary air', 3], ['A/C refrigerant', 4], ['O2 sensor', 5], ['O2 sensor heater', 6], ['EGR', 7]];
+  var CONTINUOUS = [['Misfire', 0x01, 0x10], ['Fuel system', 0x02, 0x20], ['Components', 0x04, 0x40]];
+
+  function addMonitor(el, name, ready) {
+    var li = document.createElement('li');
+    var a = document.createElement('span'); a.textContent = name;
+    var b = document.createElement('span'); b.className = 'st ' + (ready ? 'good' : 'wait'); b.textContent = ready ? 'Ready' : 'Not ready';
+    li.appendChild(a); li.appendChild(b); el.appendChild(li);
+  }
+
+  $('readiness').addEventListener('click', function () {
+    $('readySummary').textContent = 'Checking…'; $('readySummary').className = 'verdict';
+    withPause(function () {
+      return send('0101', 8000).then(function (lines) {
+        var b = pidBytes(lines, '01');
+        var el = $('ready'); el.innerHTML = '';
+        if (!b || b.length < 4) { $('readySummary').textContent = 'No reply. Try again with the ignition on.'; return; }
+        var mil = (b[0] & 0x80) !== 0, count = b[0] & 0x7f, total = 0, ready = 0;
+        function count1(r) { total++; if (r) ready++; }
+        CONTINUOUS.forEach(function (m) { if (b[1] & m[1]) { var r = !(b[1] & m[2]); count1(r); addMonitor(el, m[0], r); } });
+        MONITORS.forEach(function (m) { if (b[2] & (1 << m[1])) { var r = !(b[3] & (1 << m[1])); count1(r); addMonitor(el, m[0], r); } });
+        var head = 'Check engine light ' + (mil ? 'ON' : 'off') + ', ' + count + (count === 1 ? ' code' : ' codes') + '. ';
+        $('readySummary').textContent = head + ready + ' of ' + total + ' monitors ready.';
+        $('readySummary').className = 'verdict ' + (!mil && ready === total ? 'good' : 'warn');
+      }).catch(function () { $('readySummary').textContent = 'No reply. Try again with the ignition on.'; });
+    });
+  });
+
+  // ---------- Samples, analysis and rendering ----------
   function pushSample() {
-    if (cat.dn === null && cat.up === null) { updateCat(); return; }
+    if (cat.dn === null && cat.up === null && cat.rpm === null) return;
     var now = Date.now();
-    cat.samples.push({ t: now, up: cat.up, dn: cat.dn, rpm: cat.rpm });
-    while (cat.samples.length && now - cat.samples[0].t > 120000) cat.samples.shift();
+    cat.samples.push({
+      t: now, up: cat.up, dn: cat.dn, rpm: cat.rpm, speed: cat.speed, coolant: cat.coolant, throttle: cat.throttle,
+      load: cat.load, stft: cat.stft, ltft: cat.ltft, maf: cat.maf, iat: cat.iat, timing: cat.timing, battery: cat.battery
+    });
+    while (cat.samples.length && now - cat.samples[0].t > KEEP_MS) cat.samples.shift();
     if (cat.dn !== null) {
       if (cat.min === null || cat.dn < cat.min) cat.min = cat.dn;
       if (cat.max === null || cat.dn > cat.max) cat.max = cat.dn;
     }
-    updateCat();
   }
 
   function crossings(vals, ref, hyst) {
@@ -407,7 +560,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     var win = cat.samples.filter(function (s) { return now - s.t <= 30000; });
     var dn = win.filter(function (s) { return s.dn !== null; }).map(function (s) { return s.dn; });
     var up = win.filter(function (s) { return s.up !== null; }).map(function (s) { return s.up; });
-    if (unsup['15']) return { cls: 'warn', text: 'The car did not answer the downstream sensor request.', note: 'Without that reading this test cannot compare the sensors. Try the raw console with 0115 and 0214 to see what the car supports.' };
+    if (unsup['15']) return { cls: 'warn', text: 'The car did not answer the downstream sensor request.', note: 'Without that reading this test cannot compare the sensors. Try the raw console with 0115 to see what the car supports.' };
     if (!warmOk || !rpmOk) return { cls: '', text: 'Warm the engine and hold about 2,500 RPM.', note: 'The verdict appears after 30 seconds under those conditions.' };
     if (dn.length < 20) return { cls: '', text: 'Collecting data…', note: 'Keep the RPM steady.' };
     var dmin = Math.min.apply(null, dn), dmax = Math.max.apply(null, dn), swing = dmax - dmin;
@@ -421,9 +574,24 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     return { cls: 'warn', text: 'Mixed result. Keep holding the RPM.', note: 'Give it another 30 seconds, then run the throttle snap test.' };
   }
 
-  function fmt(v, d) { return v === null || v === undefined ? '--' : v.toFixed(d); }
+  function tx(id, v, d) { $(id).textContent = (v === null || v === undefined) ? '--' : (d === undefined ? v : v.toFixed(d)); }
 
-  function updateCat() {
+  function render() {
+    tx('rpm', cat.rpm);
+    $('rpmArc').setAttribute('stroke-dasharray', (cat.rpm === null ? 0 : Math.min(100, cat.rpm / 80)) + ' 100');
+    tx('speed', cat.speed === null ? null : Math.round(cat.speed * 0.621371));
+    tx('coolant', cat.coolant);
+    tx('throttle', cat.throttle, 0);
+    tx('load', cat.load, 0);
+    tx('maf', cat.maf, 1);
+    tx('iat', cat.iat);
+    tx('timing', cat.timing, 0);
+    tx('battery', cat.battery, 1);
+    tx('stft', cat.stft, 1);
+    tx('ltft', cat.ltft, 1);
+    tx('dnMin', cat.min, 2);
+    tx('dnMax', cat.max, 2);
+
     var warmOk = cat.coolant !== null && cat.coolant >= 160;
     var rpmOk = cat.rpm !== null && cat.rpm >= 1800 && cat.rpm <= 3200;
     $('chipWarm').textContent = 'Warm: ' + (cat.coolant === null ? '--' : cat.coolant + '°F');
@@ -448,10 +616,6 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     }
     if (cat.dn !== null) { $('dnNow').textContent = cat.dn.toFixed(2); $('dnSub').textContent = 'O2 voltage, steady is good'; }
     else if (unsup['15']) { $('dnSub').textContent = 'Not supported by this car'; }
-    $('stft').textContent = fmt(cat.stft, 1);
-    $('ltft').textContent = fmt(cat.ltft, 1);
-    $('dnMin').textContent = fmt(cat.min, 2);
-    $('dnMax').textContent = fmt(cat.max, 2);
     drawCharts();
   }
 
@@ -492,7 +656,6 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   }
 
   function drawCharts() {
-    if (mode !== 'cat') return;
     var lambda = cat.upKind === 'lambda';
     drawChart($('upChart'), 'up', lambda
       ? { min: 0.8, max: 1.2, ref: 1.0, ticks: [0.8, 0.9, 1.0, 1.1, 1.2], dec: 2, colorVar: '--accent' }
@@ -500,45 +663,72 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
     drawChart($('dnChart'), 'dn', { min: 0, max: 1, ref: 0.45, ticks: [0, 0.25, 0.5, 0.75, 1], dec: 2, colorVar: '--cool' });
   }
 
-  function setMode(m) {
-    mode = m;
-    var isCat = m === 'cat';
-    $('tabDash').setAttribute('aria-selected', String(!isCat));
-    $('tabCat').setAttribute('aria-selected', String(isCat));
-    $('dashView').style.display = isCat ? 'none' : 'grid';
-    $('catView').style.display = isCat ? 'grid' : 'none';
-    $('catView').hidden = !isCat;
-    if (isCat) { updateCat(); }
-  }
-  $('tabDash').addEventListener('click', function () { setMode('dash'); });
-  $('tabCat').addEventListener('click', function () { setMode('cat'); });
+  $('resetRange').addEventListener('click', function () { cat.min = null; cat.max = null; render(); });
 
-  $('resetRange').addEventListener('click', function () {
-    cat.min = null; cat.max = null;
-    $('dnMin').textContent = '--'; $('dnMax').textContent = '--';
-  });
-  $('copyData').addEventListener('click', function () {
-    var rows = ['seconds_ago,upstream,downstream,rpm'], now = Date.now();
-    cat.samples.slice(-300).forEach(function (s) {
-      rows.push(((now - s.t) / 1000).toFixed(1) + ',' + (s.up === null ? '' : s.up.toFixed(3)) + ',' + (s.dn === null ? '' : s.dn.toFixed(3)) + ',' + (s.rpm === null ? '' : s.rpm));
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function buildCsv() {
+    var kind = cat.upKind === 'volts' ? 'upstream_volts' : 'upstream_lambda';
+    var rows = ['time,seconds_ago,' + kind + ',downstream_volts,rpm,speed_mph,coolant_f,throttle_pct,load_pct,short_trim_pct,long_trim_pct,maf_gs,intake_air_f,timing_deg,battery_v'];
+    var now = Date.now();
+    function f(v, d) { return v === null || v === undefined ? '' : (d === undefined ? v : v.toFixed(d)); }
+    cat.samples.forEach(function (s) {
+      var dt = new Date(s.t);
+      rows.push([
+        pad2(dt.getHours()) + ':' + pad2(dt.getMinutes()) + ':' + pad2(dt.getSeconds()),
+        ((now - s.t) / 1000).toFixed(1), f(s.up, 3), f(s.dn, 3), f(s.rpm),
+        s.speed === null ? '' : Math.round(s.speed * 0.621371), f(s.coolant), f(s.throttle, 1), f(s.load, 1),
+        f(s.stft, 1), f(s.ltft, 1), f(s.maf, 2), f(s.iat), f(s.timing, 1), f(s.battery, 1)
+      ].join(','));
     });
-    var text = rows.join('\n'), note = $('copyNote');
+    return rows;
+  }
+
+  $('copyData').addEventListener('click', function () {
+    var rows = buildCsv(), text = rows.join('\n'), note = $('copyNote'), box = $('copyBox');
     note.hidden = false;
-    function done(msg) { note.textContent = msg; }
+    if (rows.length < 2) { note.textContent = 'No data yet. Connect and let it run first.'; return; }
+    var mins = ((cat.samples[cat.samples.length - 1].t - cat.samples[0].t) / 60000).toFixed(1);
+    var summary = (rows.length - 1) + ' rows covering ' + mins + ' minutes';
+    function fallback() {
+      box.hidden = false; box.value = text; box.focus(); box.select();
+      note.textContent = 'Copy was blocked. The ' + summary + ' are in the box below. Select all and copy it.';
+    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { done('Copied ' + (rows.length - 1) + ' samples. Paste them into a message.'); }, function () { log(text); done('Copy was blocked. The data is in the raw console on the Dash tab.'); });
-    } else { log(text); done('Copy is not available here. The data is in the raw console on the Dash tab.'); }
+      navigator.clipboard.writeText(text).then(function () { box.hidden = true; note.textContent = 'Copied ' + summary + '. Paste them into a note or a message.'; }, fallback);
+    } else { fallback(); }
   });
+
   window.addEventListener('resize', drawCharts);
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     if (mq.addEventListener) mq.addEventListener('change', drawCharts);
   }
 
+  // ---------- Controls ----------
+  function setProfile(p) {
+    profile = p; cat.n = 0;
+    $('profSensors').setAttribute('aria-pressed', String(p === 'sensors'));
+    $('profGauges').setAttribute('aria-pressed', String(p === 'gauges'));
+  }
+  $('profSensors').addEventListener('click', function () { setProfile('sensors'); });
+  $('profGauges').addEventListener('click', function () { setProfile('gauges'); });
+
+  function holdAwake() {
+    var note = $('awakeNote');
+    if (!$('awake').checked) { releaseAwake(); return; }
+    if (!navigator.wakeLock) { note.hidden = false; note.textContent = 'Keeping the screen on is not supported in this browser. Turn off auto-lock in your phone settings while testing.'; return; }
+    navigator.wakeLock.request('screen').then(function (l) { wl = l; note.hidden = true; }).catch(function () {
+      note.hidden = false; note.textContent = 'Could not keep the screen on. Turn off auto-lock in your phone settings while testing.';
+    });
+  }
+  function releaseAwake() { if (wl) { try { wl.release().catch(function () {}); } catch (e) {} wl = null; } }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && polling) holdAwake(); });
+  $('awake').addEventListener('change', function () { if (this.checked && polling) holdAwake(); else releaseAwake(); });
+
   // ---------- Connection ----------
   function connect(all) {
     showWarn('');
-    setStatus('Choose your FIXD…');
+    setStatus('Choose your sensor…');
     var step = 'choosing the device';
     // Tries a Bluetooth step twice, since the first try can fail while the sensor is still releasing an old connection.
     function twice(fn) {
@@ -579,7 +769,12 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
         // The first data request makes the adapter search for the car's protocol, which can take several seconds.
         return send('0100', 20000).catch(function () { showWarn('The car did not answer yet. Turn the ignition on (engine running is best) and tap Disconnect, then Connect again.'); });
       })
-      .then(function () { fails = {}; unsup = {}; setStatus('Connected', 'on'); resumePolling(); })
+      .then(function () {
+        fails = {}; unsup = {}; lastOk = Date.now(); silent = false; cat.n = 0;
+        setStatus('Connected', 'on');
+        resumePolling();
+        holdAwake();
+      })
       .catch(function (e) {
         if (e && e.name === 'NotFoundError') { setStatus('Not connected'); return; }
         setStatus('Connection failed', 'err');
@@ -589,7 +784,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   }
 
   function onDisconnected() {
-    polling = false; waiter = null; enable(false);
+    polling = false; waiter = null; enable(false); releaseAwake();
     if ($('dot').className.indexOf('err') === -1) setStatus('Disconnected');
   }
 
@@ -598,37 +793,6 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   $('disconnectBtn').addEventListener('click', function () {
     polling = false;
     if (device && device.gatt.connected) device.gatt.disconnect();
-  });
-
-  $('readCodes').addEventListener('click', function () {
-    var list = $('codes');
-    list.innerHTML = '<li class="none">Reading…</li>';
-    stopPolling().then(function () { return send('03', 8000); }).then(function (lines) {
-      var codes = decodeCodes(lines);
-      list.innerHTML = '';
-      if (!codes.length) { list.innerHTML = '<li class="none">No stored trouble codes.</li>'; }
-      codes.forEach(function (c) { var li = document.createElement('li'); li.textContent = c; list.appendChild(li); });
-    }).catch(function () {
-      list.innerHTML = '<li class="none">No reply. Try again with the ignition on.</li>';
-    }).then(resumePolling);
-  });
-
-  var clearArmed = null;
-  $('clearCodes').addEventListener('click', function () {
-    var btn = $('clearCodes'), note = $('clearNote');
-    if (!clearArmed) {
-      btn.textContent = 'Confirm clear';
-      note.hidden = false;
-      clearArmed = setTimeout(function () { clearArmed = null; btn.textContent = 'Clear codes'; note.hidden = true; }, 5000);
-      return;
-    }
-    clearTimeout(clearArmed); clearArmed = null;
-    btn.textContent = 'Clear codes'; note.hidden = true;
-    stopPolling().then(function () { return send('04', 8000); }).then(function () {
-      $('codes').innerHTML = '<li class="none">Clear command sent. Read codes to check.</li>';
-    }).catch(function () {
-      $('codes').innerHTML = '<li class="none">No reply to the clear command.</li>';
-    }).then(resumePolling);
   });
 
   $('cmdForm').addEventListener('submit', function (e) {
@@ -640,6 +804,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   });
 
   window.addEventListener('beforeunload', function () { if (device && device.gatt.connected) device.gatt.disconnect(); });
+  render();
 })();
 </script>
 
