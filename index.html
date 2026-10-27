@@ -536,21 +536,29 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
   function connect() {
     showWarn('');
     setStatus('Choose your FIXD…');
+    var step = 'choosing the device';
+    // Tries a Bluetooth step twice, since the first try can fail while the sensor is still releasing an old connection.
+    function twice(fn) {
+      return fn().catch(function () { return new Promise(function (r) { setTimeout(r, 1500); }).then(fn); });
+    }
     navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE] }, { namePrefix: 'FIXD' }], optionalServices: [SERVICE] })
       .then(function (d) {
+        step = 'opening the connection';
         device = d;
         device.addEventListener('gattserverdisconnected', onDisconnected);
         setStatus('Connecting…');
-        return device.gatt.connect();
+        return twice(function () { return device.gatt.connect(); });
       })
-      .then(function (server) { return server.getPrimaryService(SERVICE); })
-      .then(function (svc) { return Promise.all([svc.getCharacteristic(NOTIFY), svc.getCharacteristic(WRITE)]); })
+      .then(function (server) { step = 'finding the FFF0 service'; return twice(function () { return server.getPrimaryService(SERVICE); }); })
+      .then(function (svc) { step = 'finding the read and write channels'; return twice(function () { return Promise.all([svc.getCharacteristic(NOTIFY), svc.getCharacteristic(WRITE)]); }); })
       .then(function (c) {
+        step = 'turning on notifications';
         notifyChar = c[0]; writeChar = c[1];
         notifyChar.addEventListener('characteristicvaluechanged', onNotify);
-        return notifyChar.startNotifications();
+        return twice(function () { return notifyChar.startNotifications(); });
       })
       .then(function () {
+        step = 'setting up the adapter';
         enable(true);
         setStatus('Setting up adapter…');
         return send('ATZ', 5000).catch(function () {});
@@ -569,7 +577,7 @@ ol.steps { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; line-h
       .catch(function (e) {
         if (e && e.name === 'NotFoundError') { setStatus('Not connected'); return; }
         setStatus('Connection failed', 'err');
-        showWarn('Could not connect: ' + (e && e.message ? e.message : e) + '. Close the FIXD app, plug the sensor in, and try again.');
+        showWarn('Failed while ' + step + ' (' + (e && e.message ? e.message : e) + '). Close any other tab or app using the sensor, unplug and replug it, reload this page and try again.');
         enable(false);
       });
   }
